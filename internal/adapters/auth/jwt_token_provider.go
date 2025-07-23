@@ -79,5 +79,5 @@ func (p *JWTTokenProvider) ValidateToken(tokenString string) (string, error) {
 		return "", fmt.Errorf("token is invalid")
 	}
 
-	return claims.Email, nil // Başarılı doğrulama durumunda e-postayı döndür
+	return claims.Email, nil
 }
