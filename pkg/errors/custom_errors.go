@@ -2,12 +2,13 @@ package errors
 
 import "fmt"
 
-// ValidationError, geçerlilik kontrolü (validation) sırasında oluşan hataları temsil eder.
-// Birden fazla doğrulama hatası içerebilir.
+// ValidationError represents errors that occur during validation.
+// It can contain multiple validation error messages.
 type ValidationError struct {
-	Messages map[string]string // Alan adı: Hata mesajı
+	Messages map[string]string // Field name: Error message
 }
 
+// Error returns a string representation of the ValidationError.
 func (e *ValidationError) Error() string {
 	msg := "validation error(s):"
 	for field, errMsg := range e.Messages {
@@ -16,30 +17,31 @@ func (e *ValidationError) Error() string {
 	return msg
 }
 
-// NewValidationError, yeni bir ValidationError instance'ı oluşturur.
+// NewValidationError creates and returns a new instance of ValidationError.
 func NewValidationError(messages map[string]string) *ValidationError {
 	return &ValidationError{
 		Messages: messages,
 	}
 }
 
-// IsValidationError, verilen hatanın bir ValidationError olup olmadığını kontrol eder.
+// IsValidationError checks if the given error is a ValidationError.
 func IsValidationError(err error) bool {
 	_, ok := err.(*ValidationError)
 	return ok
 }
 
-// NotFoundError, bir kaynağın (resource) bulunamadığını belirten hatayı temsil eder.
+// NotFoundError represents an error indicating that a resource could not be found.
 type NotFoundError struct {
-	ResourceName string // Hangi kaynağın bulunamadığı (örn. "User", "Product")
-	Identifier   string // Kaynağın tanımlayıcısı (örn. "email@example.com", "123")
+	ResourceName string // The name of the resource that was not found (e.g., "User", "Product")
+	Identifier   string // The identifier of the resource (e.g., "email@example.com", "123")
 }
 
+// Error returns a string representation of the NotFoundError.
 func (e *NotFoundError) Error() string {
 	return fmt.Sprintf("%s with identifier '%s' not found", e.ResourceName, e.Identifier)
 }
 
-// NewNotFoundError, yeni bir NotFoundError instance'ı oluşturur.
+// NewNotFoundError creates and returns a new instance of NotFoundError.
 func NewNotFoundError(resourceName, identifier string) *NotFoundError {
 	return &NotFoundError{
 		ResourceName: resourceName,
@@ -47,63 +49,66 @@ func NewNotFoundError(resourceName, identifier string) *NotFoundError {
 	}
 }
 
-// IsNotFoundError, verilen hatanın bir NotFoundError olup olmadığını kontrol eder.
+// IsNotFoundError checks if the given error is a NotFoundError.
 func IsNotFoundError(err error) bool {
 	_, ok := err.(*NotFoundError)
 	return ok
 }
 
-// ConflictError, bir işlemde çakışma (conflict) olduğunu belirten hatayı temsil eder.
-// Genellikle benzersiz kısıtlamaların ihlal edilmesi (örn. zaten var olan bir e-posta) durumunda kullanılır.
+// ConflictError represents an error indicating a conflict in an operation.
+// It is typically used when unique constraints are violated (e.g., an email that already exists).
 type ConflictError struct {
 	Message string
 }
 
+// Error returns a string representation of the ConflictError.
 func (e *ConflictError) Error() string {
 	return e.Message
 }
 
-// NewConflictError, yeni bir ConflictError instance'ı oluşturur.
+// NewConflictError creates and returns a new instance of ConflictError.
 func NewConflictError(message string) *ConflictError {
 	return &ConflictError{
 		Message: message,
 	}
 }
 
-// IsConflictError, verilen hatanın bir ConflictError olup olmadığını kontrol eder.
+// IsConflictError checks if the given error is a ConflictError.
 func IsConflictError(err error) bool {
 	_, ok := err.(*ConflictError)
 	return ok
 }
 
-// UnauthorizedError, kimlik doğrulama başarısızlığını (geçersiz kimlik bilgileri) temsil eder.
+// UnauthorizedError represents a failed authentication (invalid credentials).
 type UnauthorizedError struct {
 	Message string
 }
 
+// Error returns a string representation of the UnauthorizedError.
 func (e *UnauthorizedError) Error() string {
 	return e.Message
 }
 
-// NewUnauthorizedError, yeni bir UnauthorizedError instance'ı oluşturur.
+// NewUnauthorizedError creates and returns a new instance of UnauthorizedError.
 func NewUnauthorizedError(message string) *UnauthorizedError {
 	return &UnauthorizedError{
 		Message: message,
 	}
 }
 
-// IsUnauthorizedError, verilen hatanın bir UnauthorizedError olup olmadığını kontrol eder.
+// IsUnauthorizedError checks if the given error is an UnauthorizedError.
 func IsUnauthorizedError(err error) bool {
 	_, ok := err.(*UnauthorizedError)
 	return ok
 }
 
-// InternalServerError, beklenmedik veya işlenemeyen iç sistem hatalarını temsil eder.
+// InternalServerError represents unexpected or unhandled internal system errors.
 type InternalServerError struct {
 	Message string
-	Err     error // Orijinal hatayı sarmalamak için (opsiyonel)
+	Err     error // Optional: to wrap the original error
 }
 
+// Error returns a string representation of the InternalServerError.
 func (e *InternalServerError) Error() string {
 	if e.Err != nil {
 		return fmt.Sprintf("internal server error: %s (details: %v)", e.Message, e.Err)
@@ -111,7 +116,7 @@ func (e *InternalServerError) Error() string {
 	return fmt.Sprintf("internal server error: %s", e.Message)
 }
 
-// NewInternalServerError, yeni bir InternalServerError instance'ı oluşturur.
+// NewInternalServerError creates and returns a new instance of InternalServerError.
 func NewInternalServerError(message string, err error) *InternalServerError {
 	return &InternalServerError{
 		Message: message,
@@ -119,7 +124,7 @@ func NewInternalServerError(message string, err error) *InternalServerError {
 	}
 }
 
-// IsInternalServerError, verilen hatanın bir InternalServerError olup olmadığını kontrol eder.
+// IsInternalServerError checks if the given error is an InternalServerError.
 func IsInternalServerError(err error) bool {
 	_, ok := err.(*InternalServerError)
 	return ok

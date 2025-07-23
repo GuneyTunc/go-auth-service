@@ -1,15 +1,15 @@
 package entities
 
-// User, uygulamanın çekirdek iş varlığını temsil eder.
-// Bu entity, veritabanı veya HTTP gibi dış teknolojilerden bağımsızdır.
+// User represents the core business entity of the application.
+// This entity is independent of external technologies like databases or HTTP.
 type User struct {
-	ID       int    // Kullanıcının benzersiz kimliği, genellikle veritabanı tarafından atanır
-	Email    string // Kullanıcının e-posta adresi (benzersiz olmalı)
-	Password string // Kullanıcının hashlenmiş şifresi
+	ID       int    // The user's unique identifier, typically assigned by the database
+	Email    string // The user's email address (must be unique)
+	Password string // The user's hashed password
 }
 
-// NewUser, yeni bir User entity'si oluşturmak için bir yardımcı fonksiyondur.
-// Bu, genellikle domain katmanında entity'leri oluşturmak için tercih edilen bir yöntemdir.
+// NewUser is a helper function to create a new User entity.
+// This is generally the preferred method for creating entities in the domain layer.
 func NewUser(id int, email, password string) *User {
 	return &User{
 		ID:       id,
@@ -17,17 +17,3 @@ func NewUser(id int, email, password string) *User {
 		Password: password,
 	}
 }
-
-// Örneğin, User entity'sine özgü basit bir doğrulama veya mantık burada yer alabilir.
-// func (u *User) IsPasswordValid(hashedPassword string) bool {
-//     // Bu kontrol aslında PasswordHasher servisinde yapılmalı,
-//     // ancak domain entity'sine ait basit bir kural örneği olabilir.
-//     return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(u.Password)) == nil
-// }
-
-// func (u *User) ChangeEmail(newEmail string) error {
-//     // E-posta değiştirme gibi bir domain davranışı burada olabilir.
-//     // Ancak bu projede doğrudan repository tarafından yönetiliyor.
-//     u.Email = newEmail
-//     return nil
-// }

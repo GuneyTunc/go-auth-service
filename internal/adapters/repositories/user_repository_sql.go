@@ -4,50 +4,50 @@ import (
 	"database/sql"
 	"fmt"
 
-	// Domain entity'yi dahil ediyoruz
+	// Include the domain entity
 	"LoginMechanism/internal/application/domain/entities"
-	// Use case'lerin bağımlı olduğu Repository arayüzünü dahil ediyoruz
+	// Include the Repository interface that use cases depend on
 	"LoginMechanism/internal/application/usecases"
 )
 
-// SQLUserRepository, UserRepository arayüzünün bir SQL Server implementasyonudur.
-// Bir *sql.DB bağlantısına bağımlıdır.
+// SQLUserRepository is a SQL Server implementation of the UserRepository interface.
+// It depends on an *sql.DB database connection.
 type SQLUserRepository struct {
 	db *sql.DB
 }
 
-// NewSQLUserRepository yeni bir SQLUserRepository instance'ı oluşturur.
-// Veritabanı bağlantısı dışarıdan enjekte edilir.
+// NewSQLUserRepository creates and returns a new instance of SQLUserRepository.
+// The database connection is injected from the outside.
 func NewSQLUserRepository(db *sql.DB) *SQLUserRepository {
 	return &SQLUserRepository{db: db}
 }
 
-// CreateUser, yeni bir User'ı veritabanına ekler.
-// Bu metot, usecases.UserRepository arayüzünün CreateUser metodunu uygular.
+// CreateUser adds a new User to the database.
+// This method implements the CreateUser method of the usecases.UserRepository interface.
 func (r *SQLUserRepository) CreateUser(user *entities.User) error {
-	// SQL Server'a özgü parametre (@p1, @p2) kullanımı.
-	// Güvenlik için parametreli sorgular kullanılır.
+	// SQL Server-specific parameter usage (@p1, @p2).
+	// Parameterized queries are used for security.
 	query := "INSERT INTO users (email, password) VALUES (@p1, @p2);"
 
 	_, err := r.db.Exec(query, user.Email, user.Password)
 	if err != nil {
-		// E-posta benzersizliği hatası gibi spesifik hatalar burada yakalanabilir
-		// ve daha genel bir domain hatasına dönüştürülebilir.
+		// Specific errors like email uniqueness violation can be caught here
+		// and converted into a more general domain error.
 		return fmt.Errorf("failed to create user in database: %w", err)
 	}
 	return nil
 }
 
-// GetUserByEmail, verilen e-posta adresine sahip User'ı veritabanından getirir.
-// Bu metot, usecases.UserRepository arayüzünün GetUserByEmail metodunu uygular.
+// GetUserByEmail retrieves a User from the database with the given email address.
+// This method implements the GetUserByEmail method of the usecases.UserRepository interface.
 func (r *SQLUserRepository) GetUserByEmail(email string) (*entities.User, error) {
 	query := "SELECT id, email, password FROM users WHERE email = @p1;"
 
 	user := &entities.User{}
 	err := r.db.QueryRow(query, email).Scan(&user.ID, &user.Email, &user.Password)
 	if err == sql.ErrNoRows {
-		// Kullanıcı bulunamazsa özel bir hata döndürüyoruz.
-		// Bu hatayı use case katmanında kontrol edebiliriz.
+		// We return a specific error if the user is not found.
+		// This error can be handled in the use case layer.
 		return nil, usecases.ErrUserNotFound
 	}
 	if err != nil {

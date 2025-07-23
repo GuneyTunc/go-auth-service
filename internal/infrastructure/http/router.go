@@ -5,24 +5,24 @@ import (
 	"net/http"
 )
 
-// NewRouter, HTTP isteklerini yönlendirmek için bir http.ServeMux instance'ı döndürür.
-// Bu, Go'nun standart kütüphanesindeki basit bir HTTP router'ıdır.
+// NewRouter returns an http.ServeMux instance for routing HTTP requests.
+// This is a simple HTTP router from Go's standard library.
 func NewRouter() *http.ServeMux {
-	// http.NewServeMux, HTTP isteklerini URL yollarına göre handler'lara yönlendiren bir multiplexer'dır.
+	// http.NewServeMux is a multiplexer that routes HTTP requests to handlers based on URL paths.
 	mux := http.NewServeMux()
 
-	// Örneğin, tüm istekler için genel bir loglama middleware'i eklenebilir.
-	// Ancak, Clean Architecture'da middleware'ler genellikle ana router'ın üstünde,
-	// yani main.go'da veya burada daha karmaşık bir wrapper ile tanımlanır.
-	// Şimdilik basit tutalım.
+	// For example, a general logging middleware could be added for all requests here.
+	// However, in Clean Architecture, middlewares are typically defined above the main router,
+	// either in main.go or with a more complex wrapper here.
+	// For now, let's keep it simple.
 
 	log.Println("HTTP router initialized.")
 	return mux
 }
 
-// HandlerFuncWrapper, http.HandlerFunc'a uygun bir adapter oluşturur.
-// Bu, Controller metodlarını doğrudan http.HandleFunc'a bağlamak için bir yardımcı fonksiyondur.
-// İleride daha gelişmiş middleware'ler veya error handling için genişletilebilir.
+// HandlerFuncWrapper creates an adapter suitable for http.HandlerFunc.
+// This is a helper function to directly bind Controller methods to http.HandleFunc.
+// It can be extended in the future for more advanced middlewares or error handling.
 type HandlerFuncWrapper func(http.ResponseWriter, *http.Request)
 
 // Methods is a helper to chain methods, similar to some web frameworks.

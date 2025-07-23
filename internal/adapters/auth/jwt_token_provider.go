@@ -7,47 +7,47 @@ import (
 	"github.com/dgrijalva/jwt-go/v4"
 )
 
-// jwtClaims JWT token içinde saklanacak özel claim'leri tanımlar.
-// E-posta adresini ve standart JWT claim'lerini içerir.
+// jwtClaims defines the custom claims to be stored inside the JWT token.
+// It includes the user's email address and standard JWT claims.
 type jwtClaims struct {
 	Email string `json:"email"`
 	jwt.StandardClaims
 }
 
-// JWTTokenProvider, usecases.TokenProvider arayüzünün bir implementasyonudur.
-// Tokenları imzalamak ve doğrulamak için bir gizli anahtara (secret key) ihtiyaç duyar.
+// JWTTokenProvider is an implementation of the usecases.TokenProvider interface.
+// It requires a secret key to sign and validate tokens.
 type JWTTokenProvider struct {
 	secretKey []byte
 }
 
-// NewJWTTokenProvider yeni bir JWTTokenProvider instance'ı oluşturur.
-// Gizli anahtar dışarıdan enjekte edilir.
+// NewJWTTokenProvider creates and returns a new instance of JWTTokenProvider.
+// The secret key is injected from the outside.
 func NewJWTTokenProvider(secretKey []byte) *JWTTokenProvider {
 	return &JWTTokenProvider{
 		secretKey: secretKey,
 	}
 }
 
-// GenerateToken, verilen e-posta için yeni bir JWT token oluşturur.
-// Bu metot, usecases.TokenProvider arayüzünün GenerateToken metodunu uygular.
+// GenerateToken creates a new JWT token for the given email.
+// This method implements the GenerateToken method of the usecases.TokenProvider interface.
 func (p *JWTTokenProvider) GenerateToken(email string) (string, error) {
-	// Token'ın geçerlilik süresi: şu an + 5 dakika
+	// Token expiration time: current time + 5 minutes
 	expirationTime := time.Now().Add(5 * time.Minute)
 
-	// Custom claim'leri ve standart claim'leri içeren bir Claims objesi oluştur
+	// Create a Claims object containing custom claims and standard claims
 	claims := &jwtClaims{
 		Email: email,
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: jwt.NewTime(float64(expirationTime.Unix())), // Token bitiş zamanı
-			IssuedAt:  jwt.NewTime(float64(time.Now().Unix())),     // Token oluşturulma zamanı
-			// NotBefore:   jwt.NewTime(float64(time.Now().Unix())), // Opsiyonel: Token ne zamandan önce geçerli değil
-			// Audience:    []string{"your-app-audience"},          // Opsiyonel: Hedef kitle
-			// Issuer:      "your-auth-service",                   // Opsiyonel: Tokenı veren
-			// Subject:     email,                                 // Opsiyonel: Konu (genellikle kullanıcı kimliği)
+			ExpiresAt: jwt.NewTime(float64(expirationTime.Unix())), // Token expiration time
+			IssuedAt:  jwt.NewTime(float64(time.Now().Unix())),     // Token issuance time
+			// NotBefore:   jwt.NewTime(float64(time.Now().Unix())), // Optional: Token is not valid before this time
+			// Audience:    []string{"your-app-audience"},           // Optional: Intended audience
+			// Issuer:      "your-auth-service",                     // Optional: Token issuer
+			// Subject:     email,                                   // Optional: Subject (usually user ID)
 		},
 	}
 
-	// Token'ı HS256 algoritması ve gizli anahtar ile imzala
+	// Sign the token using the HS256 algorithm and the secret key
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString(p.secretKey)
 	if err != nil {
@@ -57,14 +57,14 @@ func (p *JWTTokenProvider) GenerateToken(email string) (string, error) {
 	return tokenString, nil
 }
 
-// ValidateToken, verilen token'ı doğrular ve geçerliyse içindeki claim'leri döndürür.
-// Bu metot, usecases.TokenProvider arayüzünün ValidateToken metodunu uygular.
-// Projenin mevcut scope'unda doğrudan kullanılmasa da, Auth middleware'i için gereklidir.
+// ValidateToken validates the given token and returns its claims if valid.
+// This method implements the ValidateToken method of the usecases.TokenProvider interface.
+// Although not directly used within the current scope of the project, it's essential for Auth middleware.
 func (p *JWTTokenProvider) ValidateToken(tokenString string) (string, error) {
 	claims := &jwtClaims{}
 
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
-		// HS256 algoritmasının kullanıldığından emin olun
+		// Ensure the HS256 algorithm is used
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
@@ -79,5 +79,5 @@ func (p *JWTTokenProvider) ValidateToken(tokenString string) (string, error) {
 		return "", fmt.Errorf("token is invalid")
 	}
 
-	return claims.Email, nil
+	return claims.Email, nil // Return the email on successful validation
 }

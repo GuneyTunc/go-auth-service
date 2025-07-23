@@ -4,19 +4,19 @@ import (
 	"encoding/json"
 	"net/http"
 
-	// Use cases'leri dahil ediyoruz, çünkü controller'lar use case'lere bağımlıdır
+	// Importing use cases, because controllers depend on use cases
 	"LoginMechanism/internal/application/usecases"
 )
 
-// UserController HTTP isteklerini işlemek için kullanılır.
-// Bağımlılıkları olarak RegisterUser ve LoginUser use case'lerini alır.
+// UserController is used to handle HTTP requests.
+// It takes RegisterUser and LoginUser use cases as its dependencies.
 type UserController struct {
 	registerUser usecases.RegisterUserUseCase
 	loginUser    usecases.LoginUserUseCase
 }
 
-// NewUserController yeni bir UserController instance'ı oluşturur.
-// Bağımlılıkları (use case'ler) dışarıdan enjekte edilir.
+// NewUserController creates and returns a new instance of UserController.
+// Its dependencies (use cases) are injected from the outside.
 func NewUserController(
 	registerUser usecases.RegisterUserUseCase,
 	loginUser usecases.LoginUserUseCase,
@@ -27,13 +27,13 @@ func NewUserController(
 	}
 }
 
-// RegisterUserRequest, kayıt endpoint'i için gelen isteğin yapısını tanımlar.
+// RegisterUserRequest defines the structure of the incoming request body for the registration endpoint.
 type RegisterUserRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
-// RegisterUser, yeni kullanıcı kayıt isteklerini işleyen HTTP handler'ıdır.
+// RegisterUser is the HTTP handler that processes new user registration requests.
 func (c *UserController) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
@@ -47,16 +47,16 @@ func (c *UserController) RegisterUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Use case'e input modelini gönderiyoruz
+	// Sending the input model to the use case
 	input := usecases.RegisterUserInput{
 		Email:    req.Email,
 		Password: req.Password,
 	}
 
-	// Use case'i çalıştırıyoruz
+	// Executing the use case
 	err = c.registerUser.Execute(input)
 	if err != nil {
-		// Hata türüne göre HTTP durum kodu döndürülebilir
+		// An HTTP status code can be returned based on the error type
 		http.Error(w, "Registration failed: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -65,13 +65,13 @@ func (c *UserController) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"message": "User registered successfully"})
 }
 
-// LoginUserRequest, giriş endpoint'i için gelen isteğin yapısını tanımlar.
+// LoginUserRequest defines the structure of the incoming request body for the login endpoint.
 type LoginUserRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
-// LoginUser, kullanıcı giriş isteklerini işleyen HTTP handler'ıdır.
+// LoginUser is the HTTP handler that processes user login requests.
 func (c *UserController) LoginUser(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
@@ -85,16 +85,16 @@ func (c *UserController) LoginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Use case'e input modelini gönderiyoruz
+	// Sending the input model to the use case
 	input := usecases.LoginUserInput{
 		Email:    req.Email,
 		Password: req.Password,
 	}
 
-	// Use case'i çalıştırıyoruz, başarılı olursa JWT token'ı döner
+	// Executing the use case; if successful, it returns a JWT token
 	output, err := c.loginUser.Execute(input)
 	if err != nil {
-		// Hata türüne göre HTTP durum kodu döndürülebilir (örn. StatusUnauthorized)
+		// An HTTP status code can be returned based on the error type (e.g., StatusUnauthorized)
 		http.Error(w, "Login failed: "+err.Error(), http.StatusUnauthorized)
 		return
 	}

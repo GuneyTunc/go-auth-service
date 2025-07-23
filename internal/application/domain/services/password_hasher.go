@@ -3,29 +3,29 @@ package services
 import (
 	"fmt"
 
-	"golang.org/x/crypto/bcrypt" // bcrypt kütüphanesini kullanacağız
+	"golang.org/x/crypto/bcrypt" // We'll use the bcrypt library
 )
 
-// PasswordHasher, şifre hashleme ve doğrulama işlemlerini soyutlayan arayüzdür.
-// Bu arayüz, usecase katmanında kullanılacak ve domain'e özgü bir hizmeti temsil eder.
+// PasswordHasher is an interface that abstracts password hashing and verification operations.
+// This interface will be used in the use case layer and represents a domain-specific service.
 type PasswordHasher interface {
 	HashPassword(password string) (string, error)
 	CheckPassword(password, hashedPassword string) error
 }
 
-// bcryptPasswordHasher, PasswordHasher arayüzünün bcrypt kütüphanesini kullanan somut implementasyonudur.
+// bcryptPasswordHasher is a concrete implementation of the PasswordHasher interface using the bcrypt library.
 type bcryptPasswordHasher struct{}
 
-// NewBcryptPasswordHasher yeni bir bcryptPasswordHasher instance'ı oluşturur.
-// Bu constructor fonksiyonu, `main.go` içinde çağrılacaktır.
+// NewBcryptPasswordHasher creates and returns a new instance of bcryptPasswordHasher.
+// This constructor function will be called within `main.go`.
 func NewBcryptPasswordHasher() PasswordHasher {
 	return &bcryptPasswordHasher{}
 }
 
-// HashPassword, verilen düz metin şifreyi bcrypt kullanarak hashler.
+// HashPassword hashes the given plaintext password using bcrypt.
 func (b *bcryptPasswordHasher) HashPassword(password string) (string, error) {
-	// bcrypt.DefaultCost, güvenli bir varsayılan maliyet değerini kullanır.
-	// Güvenlik gereksinimlerine göre bu değer artırılabilir.
+	// bcrypt.DefaultCost uses a secure default cost value.
+	// This value can be increased based on security requirements.
 	hashedBytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate bcrypt hash: %w", err)
@@ -33,17 +33,17 @@ func (b *bcryptPasswordHasher) HashPassword(password string) (string, error) {
 	return string(hashedBytes), nil
 }
 
-// CheckPassword, verilen düz metin şifreyi hashlenmiş şifreyle karşılaştırır.
-// Şifreler eşleşirse nil, aksi takdirde bir hata döndürür.
+// CheckPassword compares the given plaintext password with the hashed password.
+// It returns nil if the passwords match, otherwise an error.
 func (b *bcryptPasswordHasher) CheckPassword(password, hashedPassword string) error {
 	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 	if err != nil {
-		// bcrypt.ErrMismatchedHashAndPassword hatası döndüğünde, şifrelerin eşleşmediği anlamına gelir.
-		// Bu hatayı doğrudan kullanmak yerine daha genel bir hata veya nil döndürebiliriz.
+		// When bcrypt.ErrMismatchedHashAndPassword is returned, it means the passwords do not match.
+		// Instead of using this error directly, we can return a more general error or nil.
 		if err == bcrypt.ErrMismatchedHashAndPassword {
 			return fmt.Errorf("password does not match")
 		}
 		return fmt.Errorf("error comparing password hash: %w", err)
 	}
-	return nil // Şifreler eşleşiyor
+	return nil // Passwords match
 }

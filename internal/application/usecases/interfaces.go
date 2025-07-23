@@ -3,11 +3,11 @@ package usecases
 import (
 	"errors"
 
-	"LoginMechanism/internal/application/domain/entities" // User entity'sini kullanacağız
+	"LoginMechanism/internal/application/domain/entities" // We will use the User entity
 )
 
-// Ortak hata tanımları. Bu hatalar use case'ler tarafından döndürülür
-// ve adaptör katmanında (controller, repository) uygun HTTP/SQL hatalarına çevrilir.
+// Common error definitions. These errors are returned by use cases
+// and are translated into appropriate HTTP/SQL errors in the adapter layer (controller, repository).
 var (
 	ErrUserNotFound          = errors.New("user not found")
 	ErrInvalidCredentials    = errors.New("invalid email or password")
@@ -16,23 +16,23 @@ var (
 	ErrTokenGenerationFailed = errors.New("failed to generate token")
 )
 
-// UserRepository, kullanıcı veritabanı işlemlerini soyutlayan arayüzdür.
-// Application katmanı, veritabanının nasıl depolandığını bilmez; sadece bu arayüzü kullanır.
+// UserRepository is an interface that abstracts user database operations.
+// The Application layer does not know how the database is stored; it only uses this interface.
 type UserRepository interface {
 	CreateUser(user *entities.User) error
 	GetUserByEmail(email string) (*entities.User, error)
 }
 
-// PasswordHasher, şifre hashleme ve doğrulama işlemlerini soyutlayan arayüzdür.
-// Application katmanı, hangi hash algoritmasının kullanıldığını (örn. bcrypt) bilmez.
+// PasswordHasher is an interface that abstracts password hashing and verification operations.
+// The Application layer does not know which hashing algorithm is used (e.g., bcrypt).
 type PasswordHasher interface {
 	HashPassword(password string) (string, error)
 	CheckPassword(password, hashedPassword string) error
 }
 
-// TokenProvider, JWT token oluşturma ve doğrulama işlemlerini soyutlayan arayüzdür.
-// Application katmanı, hangi token kütüphanesinin (örn. dgrijalva/jwt-go) kullanıldığını bilmez.
+// TokenProvider is an interface that abstracts JWT token generation and validation operations.
+// The Application layer does not know which token library is used (e.g., dgrijalva/jwt-go).
 type TokenProvider interface {
 	GenerateToken(email string) (string, error)
-	ValidateToken(tokenString string) (string, error) // Login use case'inde doğrudan kullanılmaz ama eklenecek middleware için faydalı
+	ValidateToken(tokenString string) (string, error) // Not directly used in the Login use case but useful for future middleware
 }
