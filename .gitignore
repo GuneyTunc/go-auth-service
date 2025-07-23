@@ -1,0 +1,32 @@
+# Compiled Go binaries
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Go build cache
+__debug_bin/
+*.test
+*.out
+
+# Local environment variables
+.env
+config.env
+.env.local # If you use different local env file names
+
+# Go module cache
+# Not typically ignored, but can be if you have specific reasons (e.g., very large vendored dependencies)
+# However, usually 'go mod tidy' and 'go mod vendor' manage this.
+# /vendor/ 
+
+# VS Code specific files
+.vscode/
+.vscode/*
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
